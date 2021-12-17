@@ -1,15 +1,17 @@
-import {Paper, Divider, Button, List, Tabs, Tab} from '@mui/material';
-import {AddField} from './components/AddField';
+import {Paper, Divider, Button, List} from '@mui/material';
+
 import {Item} from './components/Item';
 import React from "react";
+import FormTop from "./components/FormTop";
+import ModalWindow from "./components/ModalWindow";
 
 const SET_INPUT = 'SET_INPUT';
 const SET_TASK = 'SET_TASK';
 const SET_CHECKBOX = 'SET_CHECKBOX';
 const SET_TASK_CHECKBOX = 'SET_TASK_CHECKBOX';
+const DELETE_POST = 'DELETE_POST';
 
 function reducer(state, action) {
-
     switch (action.type) {
         case SET_INPUT:
             return {
@@ -17,10 +19,14 @@ function reducer(state, action) {
                 input: action.text,
             }
         case SET_TASK:
+            let id = 1;
+            if (state.tasks.length) {
+                id = state.tasks[state.tasks.length - 1].id + 1
+            }
             return {
                 ...state,
                 tasks: [...state.tasks, {
-                    id: state.tasks[state.tasks.length - 1].id + 1,
+                    id: id,
                     text: state.input.trim(),
                     completed: state.completed
                 }],
@@ -51,12 +57,18 @@ function reducer(state, action) {
 
             }
 
+        case DELETE_POST:
+            return {
+                ...state,
+                tasks: state.tasks.filter(el => el.id !== action.id)
+            }
         default:
             return state;
     }
 }
 
 function App() {
+    const [open, setOpen] = React.useState({status: false});
     const [state, dispatch] = React.useReducer(reducer, {
             tasks: [{
                 id: 1,
@@ -77,6 +89,9 @@ function App() {
             completed: false
         }
     )
+
+    const handleOpen = (id, text) => setOpen({status: true, id, text});
+    const handleClose = () => setOpen({status: false});
 
     function setInput(e) {
         dispatch({
@@ -101,32 +116,30 @@ function App() {
         })
     }
 
-
     function setCheckbox() {
         dispatch({
             type: SET_CHECKBOX,
         })
     }
 
+    function deleteTask(id) {
+        dispatch({
+            type: DELETE_POST,
+            id
+        })
+        handleClose()
+    }
+
+
     return (
         <div className="App">
+            <ModalWindow handleClose={handleClose} open={open} deleteTask={deleteTask}/>
             <Paper className="wrapper">
-                <Paper className="header" elevation={0}>
-                    <h4>Список задач</h4>
-                </Paper>
-                <AddField value={state.input} setInput={setInput} setTask={setTask} completed={state.completed}
-                          setCheckbox={setCheckbox}/>
-                <Divider/>
-                <Tabs value={0}>
-                    <Tab label="Все"/>
-                    <Tab label="Активные"/>
-                    <Tab label="Завершённые"/>
-                </Tabs>
-                <Divider/>
+                <FormTop setCheckbox={setCheckbox} setTask={setTask} setInput={setInput} state={state}/>
                 <List>
                     {state.tasks.map(el => <Item key={el.id} text={el.text} completed={el.completed}
-                                                 setTaskCheckbox={setTaskCheckbox} id={el.id}/>)}
-
+                                                 setTaskCheckbox={setTaskCheckbox} id={el.id}
+                                                 handleOpen={handleOpen}/>)}
                 </List>
                 <Divider/>
                 <div className="check-buttons">
