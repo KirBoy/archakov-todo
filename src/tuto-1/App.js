@@ -1,23 +1,27 @@
-import {Paper, Divider, Button, List} from '@mui/material';
+import {Button, Divider, List, Paper} from '@mui/material';
 
 import {Item} from './components/Item';
 import React from "react";
 import FormTop from "./components/FormTop";
 import ModalWindow from "./components/ModalWindow";
+import ModalEdit from "./components/ModalEdit";
 
 const SET_INPUT = 'SET_INPUT';
 const SET_TASK = 'SET_TASK';
 const SET_CHECKBOX = 'SET_CHECKBOX';
 const SET_TASK_CHECKBOX = 'SET_TASK_CHECKBOX';
-const DELETE_POST = 'DELETE_POST';
+const DELETE_TASK = 'DELETE_TASK';
+const EDIT_TASK = 'EDIT_TASK';
 
 function reducer(state, action) {
+
     switch (action.type) {
         case SET_INPUT:
             return {
                 ...state,
                 input: action.text,
             }
+
         case SET_TASK:
             let id = 1;
             if (state.tasks.length) {
@@ -57,11 +61,29 @@ function reducer(state, action) {
 
             }
 
-        case DELETE_POST:
+        case DELETE_TASK:
             return {
                 ...state,
                 tasks: state.tasks.filter(el => el.id !== action.id)
             }
+
+        case EDIT_TASK:
+            return {
+                ...state,
+                tasks: state.tasks.map(el => {
+                    if (el.id === action.id) {
+                        return (
+                            {
+                                ...el,
+                                text: action.text
+                            }
+                        )
+                    }
+                    return el
+                })
+
+            }
+
         default:
             return state;
     }
@@ -69,6 +91,11 @@ function reducer(state, action) {
 
 function App() {
     const [open, setOpen] = React.useState({status: false});
+    const [openEdit, setOpenEdit] = React.useState({status: false});
+    const [editInput, setEditInput] = React.useState({
+        id: null,
+        input: ''
+    })
     const [state, dispatch] = React.useReducer(reducer, {
             tasks: [{
                 id: 1,
@@ -92,6 +119,23 @@ function App() {
 
     const handleOpen = (id, text) => setOpen({status: true, id, text});
     const handleClose = () => setOpen({status: false});
+    const handleOpenEdit = (id, text) => setOpenEdit({status: true, id, text});
+    const handleCloseEdit = () => setOpenEdit({status: false});
+    const handleEditTask = (e, id) => {
+
+        if (id) {
+            setEditInput({
+                id: id,
+                input: state.tasks.filter(el => el.id === id)[0].text
+            })
+        } else {
+            setEditInput({
+                ...editInput,
+                input: e.target.value
+            })
+        }
+    }
+
 
     function setInput(e) {
         dispatch({
@@ -124,22 +168,37 @@ function App() {
 
     function deleteTask(id) {
         dispatch({
-            type: DELETE_POST,
+            type: DELETE_TASK,
             id
         })
         handleClose()
+    }
+
+    function editTask(id) {
+        if (editInput.input.trim()) {
+            dispatch({
+                type: EDIT_TASK,
+                id,
+                text: editInput.input
+            })
+            handleCloseEdit()
+        }
+
     }
 
 
     return (
         <div className="App">
             <ModalWindow handleClose={handleClose} open={open} deleteTask={deleteTask}/>
+            <ModalEdit handleCloseEdit={handleCloseEdit} openEdit={openEdit} editTask={editTask} editInput={editInput}
+                       handleEditTask={handleEditTask}/>
             <Paper className="wrapper">
                 <FormTop setCheckbox={setCheckbox} setTask={setTask} setInput={setInput} state={state}/>
                 <List>
                     {state.tasks.map(el => <Item key={el.id} text={el.text} completed={el.completed}
                                                  setTaskCheckbox={setTaskCheckbox} id={el.id}
-                                                 handleOpen={handleOpen}/>)}
+                                                 handleOpen={handleOpen} handleOpenEdit={handleOpenEdit}
+                                                 handleEditTask={handleEditTask}/>)}
                 </List>
                 <Divider/>
                 <div className="check-buttons">
