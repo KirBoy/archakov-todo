@@ -5,7 +5,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 
 
-export const Item = ({text, completed, setTaskCheckbox, id}) => {
+export const Item = ({text, completed, setTaskCheckbox, id, handleOpen}) => {
     return (
         <ListItem>
             <div className="d-flex item">
@@ -20,7 +20,7 @@ export const Item = ({text, completed, setTaskCheckbox, id}) => {
                     <IconButton>
                         <EditIcon style={{fontSize: 20}}/>
                     </IconButton>
-                    <IconButton>
+                    <IconButton onClick={() => handleOpen(id, text)}>
                         <DeleteOutlineIcon style={{fontSize: 20}}/>
                     </IconButton>
                 </div>
