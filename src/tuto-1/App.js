@@ -210,23 +210,23 @@ function App() {
             <Paper className="wrapper">
                 <FormTop setCheckbox={setCheckbox} setTask={setTask} setInput={setInput} state={state} setTab={setTab}/>
                 <List>
-                    {state.tab === 0 && state.tasks.map(el => <Item key={el.id} text={el.text} completed={el.completed}
-                                                                    setTaskCheckbox={setTaskCheckbox} id={el.id}
-                                                                    handleOpen={handleOpen}/>)}
 
-                    {state.tab === 1 && state.tasks.filter(el => el.completed === false).map(el => <Item key={el.id}
-                                                                                                         text={el.text}
-                                                                                                         completed={el.completed}
-                                                                                                         setTaskCheckbox={setTaskCheckbox}
-                                                                                                         id={el.id}
-                                                                                                         handleOpen={handleOpen}/>)}
+                    {state.tasks.filter(el => {
+                        if (state.tab === 1 && el.completed === true) {
+                            return el
+                        } else if (state.tab === 2 && el.completed === false) {
+                            return el
+                        } else if (state.tab === 0) {
+                            return true
+                        }
 
-                    {state.tab === 2 && state.tasks.filter(el => el.completed === true).map(el => <Item key={el.id}
-                                                                                                        text={el.text}
-                                                                                                        completed={el.completed}
-                                                                                                        setTaskCheckbox={setTaskCheckbox}
-                                                                                                        id={el.id}
-                                                                                                        handleOpen={handleOpen}/>)}
+                    }).map(el => <Item key={el.id}
+                                       text={el.text}
+                                       completed={el.completed}
+                                       setTaskCheckbox={setTaskCheckbox}
+                                       id={el.id}
+                                       handleOpen={handleOpen}/>)
+                    }
                 </List>
                 <Divider/>
                 <div className="check-buttons">
