@@ -10,6 +10,10 @@ const SET_TASK = 'SET_TASK';
 const SET_CHECKBOX = 'SET_CHECKBOX';
 const SET_TASK_CHECKBOX = 'SET_TASK_CHECKBOX';
 const DELETE_POST = 'DELETE_POST';
+const SET_TAB = 'SET_TAB';
+const CLEAR_TASKS = 'CLEAR_TASKS';
+const MARK_ALL_TASKS = 'MARK_ALL_TASKS';
+const CHECK_CHECKBOX_STATUS = 'CHECK_CHECKBOX_STATUS';
 
 function reducer(state, action) {
     switch (action.type) {
@@ -18,11 +22,9 @@ function reducer(state, action) {
                 ...state,
                 input: action.text,
             }
+
         case SET_TASK:
-            let id = 1;
-            if (state.tasks.length) {
-                id = state.tasks[state.tasks.length - 1].id + 1
-            }
+            const id = !state.tasks.length ? 1 : state.tasks[state.tasks.length - 1].id + 1
             return {
                 ...state,
                 tasks: [...state.tasks, {
@@ -53,8 +55,7 @@ function reducer(state, action) {
                         )
                     }
                     return el
-                })
-
+                }),
             }
 
         case DELETE_POST:
@@ -62,6 +63,52 @@ function reducer(state, action) {
                 ...state,
                 tasks: state.tasks.filter(el => el.id !== action.id)
             }
+
+        case SET_TAB:
+            return {
+                ...state,
+                tab: action.tab
+            }
+
+        case CLEAR_TASKS:
+            return {
+                ...state,
+                tasks: []
+            }
+
+        case MARK_ALL_TASKS:
+            return {
+                ...state,
+                tasks: state.tasks.map(el => {
+                    return (
+                        {
+                            ...el,
+                            completed: !state.allMarked
+                        }
+                    )
+                })
+            }
+
+        case CHECK_CHECKBOX_STATUS:
+
+            let status = 0
+            state.tasks.forEach(el => {
+                if (el.completed === !state.allMarked) {
+                    status++
+                }
+            })
+
+            if (status === state.tasks.length) {
+                status = !state.allMarked
+            } else {
+                return {...state}
+            }
+
+            return {
+                ...state,
+                allMarked: status
+            }
+
         default:
             return state;
     }
@@ -86,12 +133,14 @@ function App() {
                     completed: false
                 },],
             input: '',
-            completed: false
+            completed: false,
+            tab: 0,
+            allMarked: true
         }
     )
 
     const handleOpen = (id, text) => setOpen({status: true, id, text});
-    const handleClose = () => setOpen({status: false});
+    const handleClose = () => setOpen({status: false, id: null, text: ''});
 
     function setInput(e) {
         dispatch({
@@ -114,6 +163,9 @@ function App() {
             type: SET_TASK_CHECKBOX,
             id
         })
+        dispatch({
+            type: CHECK_CHECKBOX_STATUS,
+        })
     }
 
     function setCheckbox() {
@@ -130,21 +182,56 @@ function App() {
         handleClose()
     }
 
+    function setTab(tab) {
+        dispatch({
+            type: SET_TAB,
+            tab
+        })
+    }
+
+    function clearTasks() {
+        dispatch({
+            type: CLEAR_TASKS,
+        })
+    }
+
+    function marlAllTasks() {
+        dispatch({
+            type: MARK_ALL_TASKS,
+        })
+        dispatch({
+            type: CHECK_CHECKBOX_STATUS,
+        })
+    }
 
     return (
         <div className="App">
             <ModalWindow handleClose={handleClose} open={open} deleteTask={deleteTask}/>
             <Paper className="wrapper">
-                <FormTop setCheckbox={setCheckbox} setTask={setTask} setInput={setInput} state={state}/>
+                <FormTop setCheckbox={setCheckbox} setTask={setTask} setInput={setInput} state={state} setTab={setTab}/>
                 <List>
-                    {state.tasks.map(el => <Item key={el.id} text={el.text} completed={el.completed}
-                                                 setTaskCheckbox={setTaskCheckbox} id={el.id}
-                                                 handleOpen={handleOpen}/>)}
+                    {state.tab === 0 && state.tasks.map(el => <Item key={el.id} text={el.text} completed={el.completed}
+                                                                    setTaskCheckbox={setTaskCheckbox} id={el.id}
+                                                                    handleOpen={handleOpen}/>)}
+
+                    {state.tab === 1 && state.tasks.filter(el => el.completed === false).map(el => <Item key={el.id}
+                                                                                                         text={el.text}
+                                                                                                         completed={el.completed}
+                                                                                                         setTaskCheckbox={setTaskCheckbox}
+                                                                                                         id={el.id}
+                                                                                                         handleOpen={handleOpen}/>)}
+
+                    {state.tab === 2 && state.tasks.filter(el => el.completed === true).map(el => <Item key={el.id}
+                                                                                                        text={el.text}
+                                                                                                        completed={el.completed}
+                                                                                                        setTaskCheckbox={setTaskCheckbox}
+                                                                                                        id={el.id}
+                                                                                                        handleOpen={handleOpen}/>)}
                 </List>
                 <Divider/>
                 <div className="check-buttons">
-                    <Button>Отметить всё</Button>
-                    <Button>Очистить</Button>
+                    <Button onClick={marlAllTasks}>{state.allMarked ? 'Отменить все' : 'Отметить все'}</Button>
+                    <Button onClick={clearTasks}>Очистить</Button>
                 </div>
             </Paper>
         </div>

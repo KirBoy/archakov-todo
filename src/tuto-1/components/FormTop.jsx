@@ -2,7 +2,7 @@ import {Divider, Paper, Tab, Tabs} from "@mui/material";
 import {AddField} from "./AddField";
 import React from "react";
 
-function FormTop({setCheckbox,setInput, setTask, state}) {
+function FormTop({setCheckbox,setInput, setTask, state, setTab}) {
     return (
         <>
             <Paper className="header" elevation={0}>
@@ -11,10 +11,10 @@ function FormTop({setCheckbox,setInput, setTask, state}) {
             <AddField value={state.input} setInput={setInput} setTask={setTask} completed={state.completed}
                       setCheckbox={setCheckbox}/>
             <Divider/>
-            <Tabs value={0}>
-                <Tab label="Все"/>
-                <Tab label="Активные"/>
-                <Tab label="Завершённые"/>
+            <Tabs value={state.tab}>
+                <Tab label="Все" onClick={()=>setTab(0)}/>
+                <Tab label="Активные" onClick={()=>setTab(1)}/>
+                <Tab label="Завершённые" onClick={()=>setTab(2)}/>
             </Tabs>
             <Divider/>
         </>
