@@ -17,7 +17,6 @@ const style = {
 };
 
 function ModalWindow({handleClose, open, deleteTask}) {
-    console.log(open)
     return (
         <Modal
             open={open.status}
